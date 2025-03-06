@@ -51,7 +51,7 @@ const FileUpload = () => {
 
     console.log("✅ Storage Upload Success:", data);
   
-    const fileUrl = `https://xyz.supabase.co/storage/v1/object/user_documents/${fileName}`;
+    const fileUrl = `https://khbocjmbjheenikbnvob.supabase.co/storage/v1/object/sign/user_documents/${fileName}`;
 
     console.log("User ID before inserting into DB:", userId);
 

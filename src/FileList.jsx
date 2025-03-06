@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "./supabaseClient";
 
-const FileList = () => {
+const FileList = ({userId}) => {
     const[files, setFiles] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -13,7 +13,7 @@ const FileList = () => {
             const { data, error } = await supabase
             .from("Document-Storage")
             .select("*")
-            .eq("user_id", user.data.user.id);
+            .eq("user_id", userId);
 
             if (error) {
                 console.error("Error fetching files:", error);

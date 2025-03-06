@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { signUp, signIn, signOut, getUser } from "./auth";
 import FileList from "./FileList.jsx";
 import FileUpload from "./FileUpload.jsx";
+import SharePointUpload from "./SharePointUpload.jsx"; // ✅ Import SharePoint Upload Component
 
 function App() {
   const [email, setEmail] = useState("");
@@ -46,8 +47,15 @@ function App() {
         <>
           <p>Welcome, {user.email}</p>
           <button onClick={handleSignOut}>Sign Out</button>
-          <FileUpload userId={user.id} /> {/* Pass user ID for file uploads */}
-          <FileList userId={user.id} />   {/* Display uploaded files */}
+
+          <h2>Upload a File</h2>
+          <FileUpload userId={user.id} />  
+
+          <h2>Import from SharePoint</h2>
+          <SharePointUpload userId={user.id} />  
+
+          <h2>Your Uploaded Files</h2>
+          <FileList userId={user.id} />    
         </>
       ) : (
         <div>
