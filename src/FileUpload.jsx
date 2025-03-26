@@ -34,7 +34,7 @@ const FileUpload = () => {
 
   //ERROR HAPPENING HERE
 
-    // Upload to Supabase Storage
+  // upload to Supabase Storage
     const { data, error } = await supabase.storage
   .from("user_documents")
   .upload(fileName, file, {

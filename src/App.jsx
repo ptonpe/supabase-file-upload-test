@@ -42,7 +42,7 @@ function App() {
 
   return (
     <div style={{ textAlign: "center", padding: "2rem" }}>
-      <h1>Supabase Authentication & File Storage</h1>
+      <h1 style={{ fontSize: "30px" }}>Supabase Authentication & File Storage</h1>
       {user ? (
         <>
           <p>Welcome, {user.email}</p>

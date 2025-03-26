@@ -7,8 +7,12 @@ const FileList = ({userId}) => {
 
     useEffect(() => {
         const fetchFiles = async () => {
-            const user = await supabase.auth.getUser();
-            if (!user?.data?.user) return;
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError || !user) {
+                console.error("User not authenticated:", userError);
+                setLoading(false);
+                return;
+            }
 
             const { data, error } = await supabase
             .from("Document-Storage")
@@ -23,7 +27,7 @@ const FileList = ({userId}) => {
             setLoading(false);
         }
         fetchFiles();
-    }, []);
+    }, [userId]);
 
     return (
         <div>

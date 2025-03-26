@@ -33,7 +33,6 @@ const SharePointUpload = ({userId}) => {
 
     return (
         <div>
-          <h2>Import from SharePoint</h2>
           <button onClick={handleFetchFiles} disabled={loading}>
             {loading ? "Fetching..." : "Fetch Files"}
           </button>
