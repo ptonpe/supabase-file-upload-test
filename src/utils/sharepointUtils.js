@@ -1,92 +1,106 @@
 import axios from "axios";
-import { supabase } from "../supabaseClient"; 
+import { supabase } from "../supabaseClient";
 
 // Microsoft API Credentials
-const CLIENT_ID = "3d459e73-f4c0-4545-8bf8-f7140ebe8314";
-const CLIENT_SECRET = "85e8c5a8-d3aa-4b4d-9a39-a05566b9c12f";
-const TENANT_ID = "f909022f-1f9a-473e-898e-6be5a673e877";
-const REDIRECT_URI = "http://localhost:3001"; 
-const SCOPE = "https://graph.microsoft.com/.default";
+const CLIENT_ID = import.meta.env.VITE_CLIENT_ID;
+const CLIENT_SECRET = import.meta.env.VITE_CLIENT_SECRET;
+const TENANT_ID = import.meta.env.VITE_TENANT_ID;
+const SCOPE = import.meta.env.VITE_SCOPE;
+
+// Replace with your actual values
+const SITE_ID = import.meta.env.VITE_SITE_ID;
+const DRIVE_ID = import.meta.env.VITE_DRIVE_ID;
 
 export async function getAccessToken() {
-    const url = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`;
+  const url = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`;
 
-    const params = new URLSearchParams();
-    params.append("client_id", CLIENT_ID);
-    params.append("client_secret", "CLIENT_SECRET");
-    params.append("scope", SCOPE);
-    params.append("grant_type", "client_credentials");
+  const params = new URLSearchParams();
+  params.append("client_id", CLIENT_ID);
+  params.append("client_secret", CLIENT_SECRET); 
+  params.append("scope", SCOPE);
+  params.append("grant_type", "client_credentials");
 
-    try {
-        const response = await axios.post(url, params);
-        return response.data.access_token;
-    } catch (error) {
-        console.error("Error fetching access token:", error);
-        return null;
-    }
+  try {
+    const response = await axios.post(url, params);
+    return response.data.access_token;
+  } catch (error) {
+    console.error("Error fetching access token:", error);
+    return null;
+  }
 }
 
+// Fetch SharePoint files
+export async function getSPfiles() {
+  const accessToken = await getAccessToken();
+  if (!accessToken) return [];
 
-// fetch Sharepoint files from a site
-export async function getSPfiles(siteID, driveID) {
-    const accessToken = await getAccessToken();
-    if (!accessToken) return [];
+  const url = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/drives/${DRIVE_ID}/root/children`;
 
-    const url = `https://graph.microsoft.com/v1.0/sites/${siteId}/drives/${driveId}/root/children`;
-
-    try {
-        const response = await axios.get(url, {
-            headers: {Authorization: 'Bearer ${accessToken}'},
-        });
-        return response.data.value;
-    } catch(error) {
-        console.log("❌ Error fetching SharePoint files:", error);
-        return [];
-    }
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`, // ✅ fixed template string
+      },
+    });
+    return response.data.value;
+  } catch (error) {
+    console.error("❌ Error fetching SharePoint files:", error);
+    return [];
+  }
 }
 
-// download file from SP and upload to Supa
-export async function uploadFiletoSupa(fileUrl, fileName, userID) {
-    const accessToken = await getAccessToken();
-    if (!accessToken) return null;
+// Download file from SharePoint and upload to Supabase
+export async function uploadFiletoSupa(fileUrl, fileName, userId) {
+  const accessToken = await getAccessToken();
+  if (!accessToken) return null;
 
-    try {
-        const fileResponse = await axios.get(fileUrl, {
-            headers: {Authorization: 'Bearer ${accessToken'},
-            responseType: "blob",
-        });
+  try {
+    const fileResponse = await axios.get(fileUrl, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`, // ✅ fixed
+      },
+      responseType: "blob",
+    });
 
-        const fileBlob = fileResponse.data;
+    const fileBlob = fileResponse.data;
 
-        const {data, error} = await supabase.storage
-            .from("user_documents")
-            .upload('${userId}/${fileName}', fileBlob, {
-                contentType: fileBlob.type,
-            });
+    const { data, error } = await supabase.storage
+      .from("user_documents")
+      .upload(`${userId}/${fileName}`, fileBlob, {
+        contentType: fileBlob.type,
+        upsert: true,
+      });
 
-        if (error) {
-            console.error("Supabase upload error!!", error);
-            return null;
-        }
-
-        const supabaseFileUrl = `https://xyz.supabase.co/storage/v1/object/user_documents/${userId}/${fileName}`;
-
-        // store metadata in supa db
-        const {error: dbError} = await supabase
-        .from("Document-Storage")
-        .insert([{user_id: userID, file_name: fileName, file_url: supabaseFileUrl }]);
-
-        if (dbError) {
-            console.error("Database insert error!!", dbError);
-            return null;
-        }
-
-        return supabaseFileUrl;
-
-    } catch (error) {
-        console.error("Error uploading SharePoint file:", error);
-        return null;
+    if (error) {
+      console.error("Supabase upload error!!", error);
+      return null;
     }
 
-    
+    // Create signed URL
+    const { data: signedUrlData, error: signedUrlError } = await supabase
+      .storage
+      .from("user_documents")
+      .createSignedUrl(`${userId}/${fileName}`, 60 * 60);
+
+    if (signedUrlError) {
+      console.error("Error creating signed URL:", signedUrlError);
+      return null;
+    }
+
+    const fileUrlSigned = signedUrlData.signedUrl;
+
+    const { error: dbError } = await supabase
+      .from("Document-Storage")
+      .insert([{ user_id: userId, file_name: fileName, file_url: fileUrlSigned }]);
+
+    if (dbError) {
+      console.error("Database insert error!!", dbError);
+      return null;
+    }
+
+    return fileUrlSigned;
+  } catch (error) {
+    console.error("Error uploading SharePoint file:", error);
+    return null;
+  }
 }

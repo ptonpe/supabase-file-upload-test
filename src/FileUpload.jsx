@@ -34,26 +34,47 @@ const FileUpload = () => {
 
   //ERROR HAPPENING HERE
 
-  // upload to Supabase Storage
-    const { data, error } = await supabase.storage
+  // Upload to Supabase Storage
+  const { data: uploadData, error: uploadError } = await supabase.storage
   .from("user_documents")
   .upload(fileName, file, {
     contentType: file.type,
-    metadata: { owner: userId }, // ensure file ownership
+    metadata: { owner: userId },
+    upsert: true
   });
 
-    if (error) {
-      setMessage("Upload failed: " + error.message);
-      console.error("❌ Storage Error:", error);
-      setUploading(false);
-      return;
-    }
+  if (uploadError) {
+  setMessage("Upload failed: " + uploadError.message);
+  console.error("❌ Storage Error:", uploadError);
+  setUploading(false);
+  return;
+}
 
-    console.log("✅ Storage Upload Success:", data);
-  
-    const fileUrl = `https://khbocjmbjheenikbnvob.supabase.co/storage/v1/object/sign/user_documents/${fileName}`;
+const { data: list, error: listError } = await supabase
+  .storage
+  .from("user_documents")
+  .list(userId); // List that folder
 
-    console.log("User ID before inserting into DB:", userId);
+console.log("📁 Files in user's folder:", list);
+
+console.log("✅ Upload success, now generating signed URL...");
+
+  // Create signed URL after successful upload
+  const { data: signedUrlData, error: signedUrlError } = await supabase
+  .storage
+  .from("user_documents")
+  .createSignedUrl(fileName, 60 * 60); // 1 hour expiry
+
+  if (signedUrlError) {
+  setMessage("Failed to generate signed URL: " + signedUrlError.message);
+  console.error("❌ Signed URL Error:", signedUrlError);
+  setUploading(false);
+  return;
+  }
+
+  const fileUrl = signedUrlData.signedUrl;
+  console.log("User ID before inserting into DB:", userId);
+  console.log("File URL: ", fileUrl);
 
   
     // insert metadata into Supabase Database

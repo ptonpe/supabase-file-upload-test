@@ -6,13 +6,11 @@ const SharePointUpload = ({userId}) => {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
 
-    const SITE_ID = null;
-    const DRIVE_ID = null;
 
     // fetch files from SP
     const handleFetchFiles = async () => {
         setLoading(true);
-        const sharepointFiles = await getSharePointFiles(SITE_ID, DRIVE_ID);
+        const sharepointFiles = await getSPfiles();
         setFiles(sharepointFiles);
         setLoading(false);
       };
@@ -22,7 +20,7 @@ const SharePointUpload = ({userId}) => {
         setMessage(`Uploading ${file.name}...`);
     
         const fileUrl = file["@microsoft.graph.downloadUrl"]; // gets SharePoint file URL
-        const uploadedFileUrl = await uploadFileToSupabase(fileUrl, file.name, userId);
+        const uploadedFileUrl = await uploadFiletoSupa(fileUrl, file.name, userId);
     
         if (uploadedFileUrl) {
           setMessage(`✅ Uploaded: ${file.name}`);
