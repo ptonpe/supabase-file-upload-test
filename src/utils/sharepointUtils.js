@@ -12,36 +12,43 @@ const SITE_ID = import.meta.env.VITE_SITE_ID;
 const DRIVE_ID = import.meta.env.VITE_DRIVE_ID;
 
 export async function getAccessToken() {
-  const url = `https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token`;
-
-  const params = new URLSearchParams();
-  params.append("client_id", CLIENT_ID);
-  params.append("client_secret", CLIENT_SECRET); 
-  params.append("scope", SCOPE);
-  params.append("grant_type", "client_credentials");
-
-  try {
-    const response = await axios.post(url, params);
-    return response.data.access_token;
-  } catch (error) {
-    console.error("Error fetching access token:", error);
-    return null;
-  }
+    try {
+        const response = await axios.post("http://localhost:5174/get-token");
+        return response.data.access_token;
+      } catch (error) {
+        console.error("Error fetching token from backend:", error);
+        return null;
+      }
 }
 
+function buildEncodedPath(path) {
+    return path
+      .split("/")
+      .map(encodeURIComponent)
+      .join("/");
+  }
+
 // Fetch SharePoint files
-export async function getSPfiles() {
+export async function getSPfiles(folderPath = "Innovations/Offer walk through") {
   const accessToken = await getAccessToken();
   if (!accessToken) return [];
 
-  const url = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/drives/${DRIVE_ID}/root/children`;
+  const baseUrl = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}`;
+
+  const encodedPath = folderPath
+    ? `/drive/root:/${buildEncodedPath(folderPath)}:/children`
+    : `/drive/root/children`;
+
+  const url = `${baseUrl}${encodedPath}`;
+ 
 
   try {
     const response = await axios.get(url, {
       headers: {
-        Authorization: `Bearer ${accessToken}`, // ✅ fixed template string
+        Authorization: `Bearer ${accessToken}`, 
       },
     });
+    console.log("📂 SharePoint Files:", response.data.value);
     return response.data.value;
   } catch (error) {
     console.error("❌ Error fetching SharePoint files:", error);
