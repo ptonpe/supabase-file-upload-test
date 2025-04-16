@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { signUp, signIn, signOut, getUser } from "./auth";
 import FileList from "./FileList.jsx";
 import FileUpload from "./FileUpload.jsx";
-import SharePointUpload from "./SharePointUpload.jsx"; // ✅ Import SharePoint Upload Component
+import SharePointUpload from "./SharePointUpload.jsx"; 
 
 function App() {
   const [email, setEmail] = useState("");
@@ -78,5 +78,5 @@ function App() {
     </div>
   );
 }
-
+ 
 export default App;

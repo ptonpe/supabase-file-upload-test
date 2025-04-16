@@ -1,0 +1,91 @@
+.upload-container {
+    max-width: 720px;
+    margin: 2rem auto;
+    padding: 1rem;
+    font-family: Arial, sans-serif;
+  }
+  
+  .fetch-btn {
+    background-color: #2563eb;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  
+  .fetch-btn:disabled {
+    background-color: #a5b4fc;
+    cursor: not-allowed;
+  }
+  
+  .message {
+    margin-top: 1rem;
+    font-weight: bold;
+    color: #444;
+  }
+  
+  .file-panel {
+    margin-top: 2rem;
+    background-color: #f9fafb;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 1rem;
+  }
+  
+  .file-panel-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+  }
+  
+  .file-list,
+  .sub-file-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+  }
+  
+  .file-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .file-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .folder-toggle {
+    background: none;
+    border: none;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    color: #1d4ed8;
+  }
+  
+  .upload-btn {
+    background-color: #16a34a;
+    color: white;
+    border: none;
+    padding: 5px 12px;
+    font-size: 0.875rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 1rem;
+  }
+  
+  .upload-btn:hover {
+    background-color: #15803d;
+  }
+  
+  .file-sub-item {
+    display: flex;
+    justify-content: space-between;
+    padding-left: 1rem;
+    margin-top: 4px;
+  }
+  
