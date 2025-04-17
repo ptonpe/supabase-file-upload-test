@@ -62,7 +62,6 @@ export async function uploadFiletoSupa(fileUrl, fileName, userId, folderPath = "
   if (!accessToken) return null;
 
   try {
-    // Optional: log the encoded SharePoint folder path for debugging
     if (folderPath) {
       const encodedPath = `/drive/root:/${buildEncodedPath(folderPath)}:/children`;
       console.log("📁 Encoded SharePoint Path (debug only):", encodedPath);
@@ -88,12 +87,17 @@ export async function uploadFiletoSupa(fileUrl, fileName, userId, folderPath = "
     const fileKey = `${userId}/${fileName}`;
 
     // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("user_documents")
-      .upload(fileKey, fileBlob, {
-        contentType: fileBlob.type,
-        upsert: true,
-      });
+    const { data, uploadError } = await supabase.storage
+    .from("user_documents")
+    .upload(`${userId}/${fileName}`, fileBlob, {
+    contentType: fileBlob.type,
+    upsert: true,
+    metadata: {
+      owner: userId // 👈 This is REQUIRED for the RLS policy to pass
+    },
+  });
+    console.log("Uploading to path:", `${userId}/${fileName}`);
+    console.log("Session userId:", userId);
 
     if (uploadError) {
       console.error("❌ Supabase upload error:", uploadError);
